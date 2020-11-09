@@ -12,7 +12,16 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Lint all files
+    - name: Check juju-tutorials
       uses: docker://avtodev/markdown-lint:v1
       with:
-        args: '.'
+        config: './lint/config/tutorials.yml'
+        args: >
+          ./juju-tutorials/**.md
+          ./samples/juju-tutorials-nextcloud-collabora.md
+          ./templates/juju-tutorials.md
+
+    # - name: Lint all files
+    #   uses: docker://avtodev/markdown-lint:v1
+    #   with:
+    #     args: '.'
