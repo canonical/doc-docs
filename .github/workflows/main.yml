@@ -2,7 +2,7 @@ name: DOC contributions to Ubuntu documentation
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   lint:
