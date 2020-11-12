@@ -21,6 +21,15 @@ jobs:
           ./samples/juju-tutorials-nextcloud-collabora.md
           ./templates/juju-tutorials.md
 
+    - name: Check ubuntu-tutorials
+      uses: docker://avtodev/markdown-lint:v1
+      with:
+        config: './lint/config/tutorials.yml'
+        args: >
+          ./ubuntu-tutorials/**.md
+          ./samples/ubuntu-tutorials-howto-write-a-tutorial.md
+          ./templates/ubuntu-tutorials.md
+
     # - name: Lint all files
     #   uses: docker://avtodev/markdown-lint:v1
     #   with:
