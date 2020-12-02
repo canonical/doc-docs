@@ -1,4 +1,4 @@
-[comment]: <> (How To Perform Maintenance On Kubernetes Worker)
+[comment]: <How To Perform Maintenance On Kubernetes Worker>
 
 ## Introduction
 
@@ -13,9 +13,9 @@ and then bring it back online.
 To make your way through this tutorial, you will need:
 
 - Juju installed (see [Installing Juju](https://jaas.ai/docs/installing))
-- Juju controller up and running (see 
+- Juju controller up and running (see
 [Creating a controller](https://juju.is/docs/creating-a-controller))
-- Kubectl command line utility installed (see 
+- Kubectl command line utility installed (see
 [kubectl snap](https://snapcraft.io/kubectl))
 
 ### Environment preparation
@@ -37,7 +37,7 @@ $ juju add-unit kubernetes-worker
 
 Wait for kubernetes deployment to settle down, occasionaly running
 `juju status` until every unit doesn't reach the `active/idle` state. Once the
-deployment settles, you can download kubectl configuration file from the 
+deployment settles, you can download kubectl configuration file from the
 `kubernetes-master` unit.
 
 ```console
@@ -82,7 +82,7 @@ $ kubectl apply -f ./nginx-deployment.yaml
 
 This will start 4 pods with nginx image that should be evenly deployed on
 available kubernetes-worker units.
- 
+
 ### Testing install
 
 Run following command to verify that we have multiple kubernetes nodes. Each
@@ -127,8 +127,8 @@ handle taking out a node.
 
 ```console
 $ kubectl top nodes
-NAME                CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
-juju-37550a-k8s-1   1121m        28%    1476Mi          21%       
+NAME                CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+juju-37550a-k8s-1   1121m        28%    1476Mi          21%
 juju-37550a-k8s-3   1185m        29%    1458Mi          21%
 ```
 
