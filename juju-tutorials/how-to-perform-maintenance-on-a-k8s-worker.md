@@ -1,11 +1,7 @@
 [comment]: <> (How To Perform Maintenance On Kubernetes Worker)
-[comment]: <> (In Discourse, this will the subject of the new topic created under "docs tutorials")
-[comment]: <> ([details] are part of Discourse syntax)
-[comment]: <> (Markdown cheatsheet: https://learnxinyminutes.com/docs/markdown/)
 
 ## Introduction
 
-[comment]: <> (Provide time taken to read/test this section, in format M:SS; eg. 20 seconds)
 Duration: 20:00
 
 Often times, work will need to be done on a Kubernetes worker or the
@@ -119,7 +115,6 @@ If you prefer chatting, visit us on [IRC](https://webchat.freenode.net/#juju).
 
 ## Draining Kubernetes Worker
 
-[comment]: <> (The duration of this section; 5 minutes)
 Duration: 10:00
 
 The kubernetes-worker charm provides actions for draining workers. These
@@ -169,7 +164,6 @@ nginx-deployment-7848d4b86f-wpsdn   1/1     Running   0          16s     10.1.94
 
 ## Bringing Kubernetes Worker Back Online
 
-[comment]: <> (The duration of this section; 5 minutes)
 Duration: 2:00
 
 Once the worker is ready to be brought back into circulation, you can bring
