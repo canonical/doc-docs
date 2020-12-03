@@ -29,7 +29,7 @@ $ juju version
 ```
 
 [note status="What to do if you get stuck"]
-The best place to ask for help is the [Juju Discourse forum](https://discourse.charmhub.io/).
+The best place to ask for help is the [Charmhub Discourse forum](https://discourse.charmhub.io/).
 
 If you prefer chatting, visit us on [IRC](https://webchat.freenode.net/#juju).
 [/note]
