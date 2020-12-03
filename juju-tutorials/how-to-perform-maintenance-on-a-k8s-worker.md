@@ -1,4 +1,4 @@
-[comment]: <> (How To Perform Maintenance On Kubernetes Worker)
+[comment]: <> (How To Perform Maintenance On A Kubernetes Worker)
 
 ## Introduction
 
@@ -27,8 +27,8 @@ This tutorial can be completed with either [Charmed Kubernetes](https://jaas.ai/
 or with [Kubernetes Core](https://jaas.ai/kubernetes-core). For testing
 purposes, Kubernetes Core is enough.
 
-Start by deploying Kubernetes Core bundle and increasing number of Kubernetes
-Workers.
+Start by deploying Kubernetes Core bundle and increasing the number of
+Kubernetes Workers.
 
 ```console
 $ juju deploy cs:bundle/kubernetes-core
@@ -108,7 +108,7 @@ nginx-deployment-7848d4b86f-tn7bf   1/1     Running   0          25s   10.1.100.
 ```
 
 [note status="What to do if you get stuck"]
-The best place to ask for help is the [Juju Discourse forum](https://discourse.charmhub.io/).
+The best place to ask for help is the [Charmhub Discourse forum](https://discourse.charmhub.io/).
 
 If you prefer chatting, visit us on [IRC](https://webchat.freenode.net/#juju).
 [/note]
@@ -118,11 +118,11 @@ If you prefer chatting, visit us on [IRC](https://webchat.freenode.net/#juju).
 Duration: 10:00
 
 The kubernetes-worker charm provides actions for draining workers. These
-actions are pause and resume. Behind the scenes, pause runs a kubectl command
-to drain the node of all pods running on it. These pods will be rescheduled
-onto other nodes.
+actions are `pause` and `resume`. Behind the scenes, `pause` runs a kubectl
+command to drain the node of all pods running on it. These pods will be
+rescheduled onto other nodes.
 
-First check to make sure there's enough resource capacity in the cluster to
+First, check to make sure there's enough resource capacity in the cluster to
 handle taking out a node.
 
 ```console
@@ -133,7 +133,7 @@ juju-37550a-k8s-3   1185m        29%    1458Mi          21%
 ```
 
 Then you can drain node of your choice identified by unit ID. To drain
-kubernetes-worker/0 run following.
+`kubernetes-worker/0` run following.
 
 ```console
 $ juju run-action --wait kubernetes-worker/0 pause
@@ -173,6 +173,6 @@ it back online by running:
 juju run-action --wait kubernetes-worker/0 resume
 ```
 [note status="Rebalancing of the cluster"]
-Pods that were previously migrated from this node wont be automatically
+Pods that were previously migrated from this node won't be automatically
 migrated back once it's back online.
 [/note]
