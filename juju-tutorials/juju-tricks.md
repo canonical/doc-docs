@@ -147,15 +147,13 @@ In case you are running juju controller on top of Openstack and for some reason 
 
 Start by logging into the controller node and then into the mongo interactive shell. Once you are in the mongo shell, update certificate field for your cloud in `clouds` collection.
 
-``console
+```console
 juju:PRIMARY> db.clouds.update({"_id": "openstack_cloud"}, {$set: {"ca-certificates": [""]}})
 ```
 
 Certificate must be PEM-formatted one-liner with newlines replaced by `\n`.
 
-```
------BEGIN CERTIFICATE-----\n<CERTIFICATE_CONTENT>\n\n-----END CERTIFICATE-----\n
-```
+`-----BEGIN CERTIFICATE-----\n<CERTIFICATE_CONTENT>\n\n-----END CERTIFICATE-----\n`
 
 ### Debugging stuck transactions
 
