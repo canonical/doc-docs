@@ -21,18 +21,18 @@ If you prefer chatting, visit us on [IRC](https://webchat.freenode.net/#juju).
 Duration: N/A
 
 [note status="Direct reachability"]
-For the commands in this section to work, the targeted units or machines must be directly reachable via `juju ssh`. If, for example, LXCs are using network that is reachable only from the LXC host machine, you will encounter connectivity errors.
+For the commands in this section to work, the targeted units or machines must be directly reachable via `juju ssh`. If, for example, LXDs are using network that is reachable only from the LXD host machine, you will encounter connectivity errors.
 [/note]
 
 ### Restarting units and machines based on their state
 
-To restart units that are in particular state (e.g. `lost` or `down`) use following command and adjust the first part, `state=<TARGET_STATE>`, to match state of the units that you want to restart. The command, as it is, will restart units in state `down`.
+To restart units that are in a particular state (e.g. `lost` or `down`) use the following command and adjust the first part, `state=<TARGET_STATE>`, to match the state of the units that you want to restart. The command, as it is, will restart the units in state `down`.
 
 ```console
-state=down; juju status --format oneline | grep "agent:${state}" | xargs -l4 | column -t | egrep -o '[a-z0-9-]+/[0-9]+' | sort -u | xargs -P4 -I@ bash -c 'unit=@; juju ssh $unit "sudo service jujud-unit-${unit/\//-} restart"'
+state=down; juju status --format oneline | grep "agent:${state}" | egrep -o '[a-z0-9-]+/[0-9]+' | sort -u | xargs -P4 -I@ bash -c 'unit=@; juju ssh $unit "sudo service jujud-unit-${unit/\//-} restart"'
 ```
 
-To restart machine in particular state (including LXCs) use the following command and adjust the first part, `state=<TARGET_STATE>`, to match state of the machines that you want to restart. The command, as it is, will restart machines in state `down`.
+To restart machine in a particular state (including LXDs) use the following command and adjust the first part, `state=<TARGET_STATE>`, to match the state of the machines that you want to restart. The command, as it is, will restart the machines in state `down`.
 
 ```console
 state=down; juju machines | grep -v 'Machine' | awk -v state=${state} '{if ($2 == state) print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; svc=${svc%:}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
@@ -40,13 +40,13 @@ state=down; juju machines | grep -v 'Machine' | awk -v state=${state} '{if ($2 =
 
 ### Restarting all units and machines
 
-To restart all units, regardless of their state, run following command.
+To restart all units, regardless of their state, run the following command.
 
 ```console
-juju status --format oneline | xargs -l4 | column -t | egrep -o '[a-z0-9-]+/[0-9]+' | sort -u | xargs -P4 -I@ bash -c 'unit=@; juju ssh $unit "sudo service jujud-unit-${unit/\//-} restart"
+juju status --format oneline | egrep -o '[a-z0-9-]+/[0-9]+' | sort -u | xargs -P4 -I@ bash -c 'unit=@; juju ssh $unit "sudo service jujud-unit-${unit/\//-} restart"
 ```
 
-To restart all machines, regardless of their state, run following command.
+To restart all machines, regardless of their state, run the following command.
 
 ```console
 juju machines | grep -v 'Machine' | awk '{print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; svc=${svc%:}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
@@ -62,10 +62,10 @@ Duration: N/A
 
 ### Inspecting relation data
 
-To see data of the specific relation on certain unit, run the following command and adjust variables `unit` and `relation`  to match unit and relation that you wish to inspect. This example command will print data from the relation `cni` of the unit `kubernetes-master/0`.
+You can use `juju show-unit` command to see details about the unit's relations, including relation data. For example, to inspect relation `cni` of the unit `kubernetes-master/0`.
 
 ```console
-unit=kubernetes-master/0;relation=cni; juju run --unit $unit "relation-ids $relation | xargs -I_@ sh -c 'relation-list -r _@ | xargs -I_U sh -c \"relation-get -r _@ - _U | sed s,^,_U:, 2>&1\"'"
+juju show-unit kubernetes-master/0 --endpoint cni
 ```
 
 ### Manually setting relation data
@@ -97,7 +97,7 @@ Duration: N/A
 
 ## Inspecting state of reactive charms
 
-It's real simple to check states of the reactive charm. In the example below we will inspect states of the unit `flannel/1`
+It's real simple to check states of the reactive charm. States (or flags) are used by the reactive framework to transition the components of a unit (relations, configurations, ...) from a not-ready to a ready status. Inspecting them can help you troubleshoot a possible bug in the charm. In the example below we will inspect states of the unit `flannel/1`
 
 ```console
 juju run --unit flannel/1 'charms.reactive -p get_states'
@@ -147,9 +147,9 @@ mongo --sslAllowInvalidCertificates --authenticationDatabase admin --ssl -u $(su
 
 ### Manual change of Openstack endpoint certificates
 
-In case you are running juju controller on top of Openstack and for some reason the CA certificates on the endpoints change, you can't access the endpoint anymore with "certificate signed by unknown authority", the only way to fix it is to update the juju mongodb directly.
+In case you are running a juju controller on top of the Openstack and for some reason the CA certificates on the endpoints change, you can't access the endpoint anymore with "certificate signed by unknown authority", the only way to fix it is to update Juju's mongodb directly.
 
-Start by logging into the controller node and then into the mongo interactive shell. Once you are in the mongo shell, update certificate field for your cloud in `clouds` collection.
+Start by logging into the controller node and then into the mongo interactive shell. Once you are in the mongo shell, update the certificate field for your cloud in the `clouds` collection.
 
 ```console
 juju:PRIMARY> db.clouds.update({"_id": "openstack_cloud"}, {$set: {"ca-certificates": [""]}})
@@ -169,7 +169,7 @@ juju:PRIMARY> db.cleanups.find().pretty()
 
 ### Dumping database content
 
-There already is `juju create-backup` tool, but in case it's not working or you just want to dump raw juju  database, you can log into the controller and run following.
+Although `juju create-backup` exists, you can dump raw Juju database by logging into the controller and running the following:
 
 ```console
 datestamp=`date +"%Y-%m-%d_%H-%M-%S"`
