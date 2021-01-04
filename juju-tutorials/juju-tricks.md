@@ -52,6 +52,10 @@ To restart all machines, regardless of their state, run following command.
 juju machines | grep -v 'Machine' | awk '{print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; svc=${svc%:}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
 ```
 
+### Retrying failed hooks
+
+If there are multiple units with failed hooks, you can retry to re-run them with `juju resolved --all`
+
 ## Tricks on debugging unit relations
 
 Duration: N/A
