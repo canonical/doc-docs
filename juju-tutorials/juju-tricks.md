@@ -95,6 +95,85 @@ For the reactive charms, use 'juju run --unit foo/0 charms.reactive' to set/unse
 
 Duration: N/A
 
+## Running `juju debug-hooks` on Juju backed by Kubernetes
+
+Current stable Juju release (2.8) does not support running `juju debug-hooks` command on model/units backed by Kubernetes. This feature will become available in 2.9 release (see [Release Notes](https://discourse.charmhub.io/t/juju-2-9-beta-1-release-notes/3642)). You can, however, achieve similar debugging capabilities using the following trick.
+
+Let's say we have a `gunicorn` unit with `db-relation-joined` hook failing and we want to find out what's causing the failure.
+
+[note status="Placeholders"]
+In the following commands, we will use `<JUJU_MODEL>` and `<JUJU_UNIT>` as placeholders for actual unit and model names, replace them with approprate values.
+[/note]
+
+Get a shell on the operator pod using `microk8s.kubectl`:
+
+```console
+microk8s.kubectl  exec -it -n <JUJU_MODEL> pod/<JUJU_UNIT>-operator-0 bash
+```
+
+Replace faulty hook with a placeholder script that will dump hook's environment variables. Note the `sleep` in this script, it will give us one hour to do our debugging. If you suspect you'll need longer, put in appropriate value. Don't be afraid to go big, we will kill the sleep when we are done debugging.
+
+```console
+cd agents/unit-<JUJU_UNIT>/charm/hooks
+mv db-relation-joined db-relation-joined.old
+cat > db-relation-joined <<EOF
+#!/bin/bash
+env
+sleep 3600
+exit 1
+EOF
+chmod 755 db-relation-joined
+```
+
+Log out of the operator pod and run `juju resolved`, this will re-run failed hook that is now replaced with our placeholder script and we will see all the dumped environment variables in the `juju debug-log`
+
+```console
+juju resolved <JUJU_UNIT>
+juju debug-log
+```
+
+Example of the output in `juju debug-log` is something like this:
+
+```console
+application-gunicorn: 13:30:16 DEBUG unit.gunicorn/19.db-relation-joined JUJU_UNIT_NAME=gunicorn/19
+application-gunicorn: 13:30:16 DEBUG unit.gunicorn/19.db-relation-joined JUJU_AGENT_SOCKET_ADDRESS=@/var/lib/juju/agents/unit-gunicorn-19/agent.socket
+```
+
+Copy every line that's produced from `db-relation-joined` hook. Log back into the unit and export the dumped variables. This will simulate environment in which the juju hooks are typicaly running with all the necessary variables set.
+
+```console
+microk8s.kubectl  exec -it -n <JUJU_MODEL> pod/<JUJU_UNIT>-operator-0 bash
+for i in $(cat|awk '{print $5}'); do export $i; done
+[paste previously copied lines from the debug-log]
+^d
+cd $PWD
+```
+
+Now recreate a proper hook file and run it to debug it.
+
+```console
+mkdir hooks/tmp/
+ln -s ../../src/charm.py hooks/tmp/$JUJU_HOOK_NAME
+hooks/tmp/$JUJU_HOOK_NAME
+```
+
+Output of the hook can look somethiing like this:
+
+```console
+Traceback (most recent call last):
+  File "lib/ops/model.py", line 697, in _run
+    result = run(args, check=True, **kwargs)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '('relation-set', '-r', '1', 'database=mydbname', '--app=True')' returned non-zero exit status 1.
+```
+
+When you are done with debugging, kill the sleep from our placeholder script.
+
+```console
+pkill -x sleep
+```
+
 ## Inspecting state of reactive charms
 
 It's real simple to check states of the reactive charm. States (or flags) are used by the reactive framework to transition the components of a unit (relations, configurations, ...) from a not-ready to a ready status. Inspecting them can help you troubleshoot a possible bug in the charm. In the example below we will inspect states of the unit `flannel/1`
