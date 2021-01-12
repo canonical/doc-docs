@@ -4,11 +4,11 @@
 
 Duration: 0:01
 
-This article is compilation of CLI tricks, useful for recovery of juju deployments after OS services' hosts reboot / crash / network splits / etc.
+This article is compilation of CLI tricks, useful for recovery of Juju deployments after services or hosts reboot, crash, or network components become unreachable.
 
 ### Requirements
 
-There is no specific setup precedure for this tutorial because it contains commands that are applicable in various situations in any juju deployment. Most of the commands are using just standard cli utilities like `grep`, `sed` or `awk`.
+There is no specific setup precedure for this tutorial because it contains commands that are applicable in various situations in any Juju deployment. Most of the commands are using just standard CLI utilities like `grep`, `sed` or `awk`.
 
 [note status="What to do if you get stuck"]
 The best place to ask for help is the [Charmhub Discourse forum](https://discourse.charmhub.io/).
@@ -16,12 +16,12 @@ The best place to ask for help is the [Charmhub Discourse forum](https://discour
 If you prefer chatting, visit us on [IRC](https://webchat.freenode.net/#juju).
 [/note]
 
-## Tricks on broken units / machines / models
+## Tricks on broken units, machines or models
 
 Duration: N/A
 
 [note status="Direct reachability"]
-For the commands in this section to work, the targeted units or machines must be directly reachable via `juju ssh`. If, for example, LXDs are using network that is reachable only from the LXD host machine, you will encounter connectivity errors.
+For the commands in this section to work, the targeted units or machines must be directly reachable via `juju ssh`. If, for example, LXDs are using a network that is reachable only from the LXD host machine, you will encounter connectivity errors.
 [/note]
 
 ### Restarting units and machines based on their state
@@ -32,10 +32,10 @@ To restart units that are in a particular state (e.g. `lost` or `down`) use the 
 state=down; juju status --format oneline | grep "agent:${state}" | egrep -o '[a-z0-9-]+/[0-9]+' | sort -u | xargs -P4 -I@ bash -c 'unit=@; juju ssh $unit "sudo service jujud-unit-${unit/\//-} restart"'
 ```
 
-To restart machine in a particular state (including LXDs) use the following command and adjust the first part, `state=<TARGET_STATE>`, to match the state of the machines that you want to restart. The command, as it is, will restart the machines in state `down`.
+To restart machines in a particular state (including LXDs) use the following command and adjust the first part, `state=<TARGET_STATE>`, to match the state of the machines that you want to restart. The command, as it is, will restart the machines in state `down`.
 
 ```console
-state=down; juju machines | grep -v 'Machine' | awk -v state=${state} '{if ($2 == state) print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; svc=${svc%:}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
+state=down; juju machines | sed "1 d" | awk -v state=${state} '{if ($2 == state) print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
 ```
 
 ### Restarting all units and machines
@@ -49,14 +49,14 @@ juju status --format oneline | egrep -o '[a-z0-9-]+/[0-9]+' | sort -u | xargs -P
 To restart all machines, regardless of their state, run the following command.
 
 ```console
-juju machines | grep -v 'Machine' | awk '{print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; svc=${svc%:}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
+juju machines | sed "1 d" | awk '{print $1}' | xargs -P4 -I@ bash -c 'machine=@; svc=${machine//\//-}; juju ssh ${machine%:} "sudo service jujud-machine-${svc}" restart'
 ```
 
 ### Retrying failed hooks
 
 If there are multiple units with failed hooks, you can retry to re-run them with `juju resolved --all`
 
-## Tricks on debugging unit relations
+## Juju relations
 
 Duration: N/A
 
@@ -95,7 +95,7 @@ For the reactive charms, use 'juju run --unit foo/0 charms.reactive' to set/unse
 
 Duration: N/A
 
-## Running `juju debug-hooks` on Juju backed by Kubernetes
+### Running `juju debug-hooks` on Juju backed by Kubernetes
 
 Current stable Juju release (2.8) does not support running `juju debug-hooks` command on model/units backed by Kubernetes. This feature will become available in 2.9 release (see [Release Notes](https://discourse.charmhub.io/t/juju-2-9-beta-1-release-notes/3642)). You can, however, achieve similar debugging capabilities using the following trick.
 
@@ -157,7 +157,7 @@ ln -s ../../src/charm.py hooks/tmp/$JUJU_HOOK_NAME
 hooks/tmp/$JUJU_HOOK_NAME
 ```
 
-Output of the hook can look somethiing like this:
+Output of the hook can look like this:
 
 ```console
 Traceback (most recent call last):
@@ -174,7 +174,7 @@ When you are done with debugging, kill the sleep from our placeholder script.
 pkill -x sleep
 ```
 
-## Inspecting state of reactive charms
+### Inspecting state of reactive charms
 
 It's real simple to check states of the reactive charm. States (or flags) are used by the reactive framework to transition the components of a unit (relations, configurations, ...) from a not-ready to a ready status. Inspecting them can help you troubleshoot a possible bug in the charm. In the example below we will inspect states of the unit `flannel/1`
 
@@ -209,16 +209,16 @@ juju run --unit flannel/1 'charms.reactive -p get_states'
 Duration: N/A
 
 [note status="Caution"]
-Changing values in the juju database can corrupt your juju installation. Proceed with caution and doublecheck before making any changes.
+Changing values in the Juju database can corrupt your Juju installation. Proceed with caution and doublecheck before making any changes.
 [/note]
 
-Sometimes it may be necessary to access juju's database directly, although it should be considered as last resort solution. To log into the juju's database, you must first log into the juju controller machine.
+Sometimes it may be necessary to access Juju's database directly, although it should be considered as last resort solution. To log into the Juju's database, you must first log into the Juju controller machine.
 
 ```console
 juju ssh -m controller 0
 ```
 
-Once there, you can log into the juju's mongo database.
+Once there, you can log into the Juju's mongo database.
 
 ```console
 mongo --sslAllowInvalidCertificates --authenticationDatabase admin --ssl -u $(sudo awk '/tag/ {print $2}' /var/lib/juju/agents/machine-?/agent.conf) -p $(sudo awk '/statepassword/ {print $2}' /var/lib/juju/agents/machine-?/agent.conf) localhost:37017/juju
@@ -226,7 +226,7 @@ mongo --sslAllowInvalidCertificates --authenticationDatabase admin --ssl -u $(su
 
 ### Manual change of Openstack endpoint certificates
 
-In case you are running a juju controller on top of the Openstack and for some reason the CA certificates on the endpoints change, you can't access the endpoint anymore with "certificate signed by unknown authority", the only way to fix it is to update Juju's mongodb directly.
+In case you are running a Juju controller on top of Openstack and for some reason the CA certificates on the endpoints change, you can't access the endpoint anymore with "certificate signed by unknown authority", the only way to fix it is to update Juju's mongodb directly.
 
 Start by logging into the controller node and then into the mongo interactive shell. Once you are in the mongo shell, update the certificate field for your cloud in the `clouds` collection.
 
