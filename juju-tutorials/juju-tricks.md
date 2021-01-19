@@ -4,7 +4,7 @@
 
 Duration: 0:01
 
-This article is compilation of CLI tricks, useful for recovery of Juju deployments after services or hosts reboot, crash, or network components become unreachable.
+This article is a compilation of CLI tricks, useful for recovery of Juju deployments after services or hosts reboot, crash, or network components become unreachable.
 
 ### Requirements
 
@@ -70,7 +70,7 @@ juju show-unit kubernetes-master/0 --endpoint cni
 
 ### Manually setting relation data
 
-To manually set data on some relation, we must first find its relation ID. Lets say we want to change value of the `cni-conf-file` on the `cni` relation between units `kubernetes-worker/0` and `flannel/1`. We run this command to determine relation ID.
+To manually set data on a relation, we must first find its relation ID. Lets say we want to change the value of `cni-conf-file` on the `cni` relation between units `kubernetes-worker/0` and `flannel/1`. We run this command to determine relation ID.
 
 ```console
 juju run --unit kubernetes-master/0 'relation-ids cni'
@@ -204,7 +204,7 @@ juju run --unit flannel/1 'charms.reactive -p get_states'
  'flannel.version.set': None}
 ```
 
-## Accessing juju internal database
+## Accessing Juju internal database
 
 Duration: N/A
 
@@ -224,9 +224,9 @@ Once there, you can log into the Juju's mongo database.
 mongo --sslAllowInvalidCertificates --authenticationDatabase admin --ssl -u $(sudo awk '/tag/ {print $2}' /var/lib/juju/agents/machine-?/agent.conf) -p $(sudo awk '/statepassword/ {print $2}' /var/lib/juju/agents/machine-?/agent.conf) localhost:37017/juju
 ```
 
-### Manual change of Openstack endpoint certificates
+### Manual change of OpenStack endpoint certificates
 
-In case you are running a Juju controller on top of Openstack and for some reason the CA certificates on the endpoints change, you can't access the endpoint anymore with "certificate signed by unknown authority", the only way to fix it is to update Juju's mongodb directly.
+In case you are running a Juju controller on top of OpenStack and for some reason the CA certificates on the endpoints change, you can't access the endpoint anymore with "certificate signed by unknown authority", the only way to fix it is to update Juju's mongodb directly.
 
 Start by logging into the controller node and then into the mongo interactive shell. Once you are in the mongo shell, update the certificate field for your cloud in the `clouds` collection.
 
