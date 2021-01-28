@@ -95,29 +95,34 @@ Don't forget to get credentials for the main OpenStack. (e.g. `source novarc`, l
    for i in 0 1 2
    do
        # create new port
-       eval $(openstack port create --format shell --prefix PORT_$i_ --network $ADMIN_NET data-port)
-       echo "  create new port with id $PORT_$i_id and MAC address $PORT_$i_mac_address"
+       eval $(openstack port create --format shell --prefix port_ --network $ADMIN_NET data-port)
+       echo "  create new port with id $port_id and MAC address $port_mac_address"
     
        # get ovn chassis ip
-       export OVN_CHASSIS_$i_IP=$(juju status --format json | jq -r '.applications."nagios".units | map_values(."public-address") | [.[]] | .[$i]')
-       echo "  found ovn-chassis/$i ip address $OVN_CHASSIS_$i_IP"
+       export ovn_chassis_ip=$(juju status | grep ovn-chassis/$i | tr -s " " | cut -d" " -f5)
+       echo "  found ovn-chassis/$i ip address $ovn_chassis_ip"
     
        # get ovn chassis id
-       export OVN_CHASSIS_$i_ID=$(openstack server list -f value | awk '/$OVN_CHASSIS_$i_IP/ {print $1}')
-       echo "  found ovn-chassis/$i id $OVN_CHASSIS_$i_ID"
+       export ovn_chassis_id=$(openstack server list -f value | awk -v IP=$ovn_chassis_ip '$0 ~ IP {print $1}')
+       echo "  found ovn-chassis/$i id $ovn_chassis_id"
     
        # add port to ovn chassis
-       openstack server add port $OVN_CHASSIS_$i_ID $PORT_$i_id
-       echo "  add port $PORT_$i_id to server $OVN_CHASSIS_$i_ID"
+       openstack server add port $ovn_chassis_id $port_id
+       echo "  add port $port_id to server $ovn_chassis_id"
     
        # set bridge interface mapping variable
-       export BRIDGE_INTERFACE_MAPPING="$BRIDGE_INTERFACE_MAPPING br-ex:$PORT_$i_mac_address"
+       export BRIDGE_INTERFACE_MAPPING="$BRIDGE_INTERFACE_MAPPING br-ex:$port_mac_address"
    done
    ```
 1. Configure the bridge interface mapping in the `ovn-chassis` application.
    ```bash
    juju config ovn-chassis bridge-interface-mappings="$BRIDGE_INTERFACE_MAPPING"
    ```
+
+[note status="configuring a new interface for ovn-chassis"]
+After adding and configuring new ports to the `ovn-chassis` units, you need to run the
+`juju resolve ovn-chassis/<unit_number>` twice for each unit.
+[/note]
 
 ### Final configuration
 
@@ -185,6 +190,14 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
 
 1. The last thing is to add a new OpenStack cloud to Juju, create new credentials and create a controller.
    See the [OpenStack-cloud][openstack-cloud] page for more information.
+
+   [note status="Tunnel"]
+   If your OpenStack environment is not on the local machine, or you are not working directly on the remote machine,
+   you may need to run it `sshuttle` to create a tunnel for copying from the juju unit.
+   `sshuttle -r <user@server> <juju-network>` e.g. `sshuttle -r bastion 10.5.0.0/16` (find network with
+   `juju status -m controller`)
+   [/note]
+
    1. Add OpenStack as a Juju cloud provider.
       ```bash
       juju add-cloud
@@ -239,11 +252,11 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       ```bash
       EXT_NET=$(openstack network list --name external_net -c ID -f value)
       INT_NET=$(openstack network list --name internal_net -c ID -f value)
-      juju bootstrap --metadata-source ./simplestreams  --model-default external-network=$EXT_NET network=$INT_NET use-floating-ip=true use-default-secgroup=true --config default-series=focal <cloud_name> <controller_name>
+      juju bootstrap --metadata-source ./simplestreams  --model-default external-network=$EXT_NET --model-default network=$INT_NET --model-default use-floating-ip=true --model-default use-default-secgroup=true --config default-series=focal <cloud_name> <controller_name>
       ```
       [note status="Proxy"]
       If a proxy is required on the servers where you deploy it, also use
-      `--model-default http-proxy=<proxy_ip>:<proxy_port> https-proxy=<proxy_ip>:<proxy_port>`.
+      `--model-default http-proxy=<proxy_ip>:<proxy_port> --model-default https-proxy=<proxy_ip>:<proxy_port>`.
       [/note]
 
 ...

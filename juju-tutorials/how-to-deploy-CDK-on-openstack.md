@@ -61,13 +61,6 @@ mkdir ~/.kube
 juju scp kubernetes-master/0:/home/ubuntu/config ~/.kube/config
 ```
 
-[note status="Tunnel"]
-If your OpenStack environment is not on the local machine, or you are not working directly on the remote machine,
-you may need to run it `sshuttle` to create a tunnel for copying from the juju unit.
-`sshuttle -r <user@server> <juju-network>` e.g. `sshuttle -r bastion 10.5.0.0/24` (find network with
-`juju status -m controller`)
-[/note]
-
 ### Cinder volume
 
 #### Create
