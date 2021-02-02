@@ -252,7 +252,7 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       ```bash
       EXT_NET=$(openstack network list --name external_net -c ID -f value)
       INT_NET=$(openstack network list --name internal_net -c ID -f value)
-      juju bootstrap --metadata-source ./simplestreams  --model-default external-network=$EXT_NET --model-default network=$INT_NET --model-default use-floating-ip=true --model-default use-default-secgroup=true --config default-series=focal <cloud_name> <controller_name>
+      juju bootstrap --metadata-source ./simplestreams --model-default external-network=$EXT_NET --model-default network=$INT_NET --model-default use-floating-ip=true --model-default use-default-secgroup=true --config default-series=focal <cloud_name> <controller_name>
       ```
       [note status="Proxy"]
       If a proxy is required on the servers where you deploy it, also use

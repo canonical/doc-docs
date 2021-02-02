@@ -1,8 +1,9 @@
 [comment]: <> (How To Fix A Volume Attachment Failure Against An OpenStack Instance)
+[comment]: <> (update link for "the OpenStack on OpenStack" after its publication)
 
 ## Introduction
 
-Duration: 20:00
+Duration: 30:00
 
 When updating **QEMU** packages, instances that started prior to the upgrade can experience issues attaching
 volumes to it.
@@ -13,7 +14,54 @@ a container when it tries to attach the PVC (and by consequence, attach cinder v
 intends to explain how to identify if the **QEMU** bug is the root problem, how to fix, and proper procedure for
 handling the k8s situation.
 
-### Identify attachment failures
+## Requirements
+
+You need to have deployed [CDK][charmed-distribution-kubernetes] environment on the [OpenStack-base][openstack-base]
+environment. Then you need to have OpenStack configured with valid credentials (e.g. `source novarc`, represent
+the OpenStack credential, belonging to OpenStack on top of which you are deploying [OpenStack-base][openstack-base]
+and if you don't have it, ask your OpenStack administrator)
+
+Instructions on how to deploy OpenStack on OpenStack can be found on [charmhub discourse][openstack-on-openstack].
+
+## Environment preparation
+
+For the purposes of this tutorial, it is necessary to have the PVC storage attached to any **k8** pod and then upgrade
+the QEMU. Then this PVC storage should be attached to any pod.
+
+### Cinder volume
+
+The following yaml configuration file is used to create an 8 GB cinder volume.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-storage
+spec:
+  storageClassName: cdk-cinder
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+```
+
+The next step will be to create PersistentVolumeClaim (PVC).
+
+```bash
+kubectl apply -f <pvc-configutation-file>.yaml
+```
+
+### QEMU update
+
+the QEMU packages are used by the KVMs running on a `nova-compute` unit, and it could be upgraded using the following
+command.
+
+```bash
+juju run --application nova-compute 'sudo apt install --upgrade qemu'
+```
+
+## Identify attachment failures
 
 On the surface, attachment failures won't give much info on why it's failing. Nova log on the host will show
 ERROR messages similar to the following:
@@ -80,4 +128,7 @@ stored data in the pod.
 ...
 
 [#1847361]: https://bugs.launchpad.net/ubuntu/+source/qemu/+bug/1847361
+[openstack-base]: https://jaas.ai/openstack-base
+[charmed-distribution-kubernetes]: https://jaas.ai/canonical-kubernetes
 [K8sWorkerMaintenance]: https://discourse.charmhub.io/t/how-to-perform-maintenance-on-a-kubernetes-worker/3910
+[openstack-on-openstack]: https://discourse.charmhub.io/t/update_link_after_publishing_it
