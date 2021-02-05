@@ -10,13 +10,13 @@ OpenStack service.
 
 ## Requirements
 
-There are three prerequisites you will need:
+There are three prerequisites needed:
 
-1. Juju installed (see [Installing Juju][juju-install])
-1. Juju controller up and running (see [Creating a controller][juju-controller])
-1. OpenStack is configured with valid credentials (e.g. `source novarc`, represent the OpenStack credential,
-   belonging to OpenStack on top of which you are deploying [OpenStack-base][openstack-base] and if you don't have it,
-   ask your OpenStack administrator)
+1. Juju is installed (see [Installing Juju][juju-install])
+1. Juju controller is up and running (see [Creating a controller][juju-controller])
+1. OpenStack is configured with valid credentials (e.g. `source novarc`, represents the OpenStack credentials,
+   belonging to the managed OpenStack environment on top of which [OpenStack-base][openstack-base] is deployed.
+   If the credentials are missing, ask the managed OpenStack administrator)
 
 ## OpenStack
 
@@ -24,8 +24,9 @@ Deploy the [OpenStack-base][openstack-base] bundle with the custom overlay.
 
 ### Resources overlay
 
-This overlay must be used if we want to deploy [CDK][charmed-distribution-kubernetes] over this OpenStack,
-otherwise the minimum requirements would not be met, and the `kubernetes-master/worker` units could not be deployed.
+The following overlay must be used if [CDK][charmed-distribution-kubernetes] is deployed over OpenStack,
+otherwise the minimum requirements would not be met, and the `kubernetes-master` (and `worker`) units
+could not be deployed.
 
 ```yaml
 applications:
@@ -50,7 +51,7 @@ juju deploy ./openstack-bundles/stable/openstack-base/bundle.yaml --overlay ./op
    ```bash
    juju ssh vault/0
    ```
-1. Initialize Vault deployment. (for more information visit [page][vault-init])
+1. Initialize Vault deployment. (for more information, look at the [official documentation][vault-init])
    ```bash
    export VAULT_ADDR="http://127.0.0.1:8200"
    vault operator init -key-shares=3 -key-threshold=3 > vault-keys
@@ -58,7 +59,7 @@ juju deploy ./openstack-bundles/stable/openstack-base/bundle.yaml --overlay ./op
 1. Unseal all keys and generate root CA.
    ```bash
    for key in $(grep -E "Unseal Key .*: " vault-keys | cut -c15- | tail -3)
-   do 
+   do
        vault operator unseal $key
    done
    ```
@@ -81,7 +82,7 @@ This section deals with the prerequisites for network configuration and is requi
 the deployed OpenStack. It provides network traffic between individual units.
 
 [note status="OpenStack credentials"]
-Don't forget to get credentials for the main OpenStack. (e.g. `source novarc`, look at "Requirements" section)
+Don't forget to load the managed OpenStack service credentials. (e.g. `source novarc`, see previous "Requirements" section), which will allow the configuration of objects for the overcloud OpenStack-base service.
 [/note]
 
 1. Get OpenStack admin net.
@@ -97,19 +98,19 @@ Don't forget to get credentials for the main OpenStack. (e.g. `source novarc`, l
        # create new port
        eval $(openstack port create --format shell --prefix port_ --network $ADMIN_NET data-port)
        echo "  create new port with id $port_id and MAC address $port_mac_address"
-    
+
        # get ovn chassis ip
        export ovn_chassis_ip=$(juju status | grep ovn-chassis/$i | tr -s " " | cut -d" " -f5)
        echo "  found ovn-chassis/$i ip address $ovn_chassis_ip"
-    
+
        # get ovn chassis id
        export ovn_chassis_id=$(openstack server list -f value | awk -v IP=$ovn_chassis_ip '$0 ~ IP {print $1}')
        echo "  found ovn-chassis/$i id $ovn_chassis_id"
-    
+
        # add port to ovn chassis
        openstack server add port $ovn_chassis_id $port_id
        echo "  add port $port_id to server $ovn_chassis_id"
-    
+
        # set bridge interface mapping variable
        export BRIDGE_INTERFACE_MAPPING="$BRIDGE_INTERFACE_MAPPING br-ex:$port_mac_address"
    done
@@ -133,7 +134,7 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
 [OpenStack bundles repository][openstack-bundles-base])
 [/note]
 
-1. In order to use the managed OpenStack service, several configurations are required: flavors, images, networks and
+1. In order to use the overcloud OpenStack service, several configurations are required: flavors, images, networks and
    security groups. Detailed instructions can be found on [OpenStack-base][openstack-base] in the "Accessing the cloud"
    section.
    1. Images - creating focal image
@@ -168,33 +169,33 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       export INT_DNS=10.5.0.2
       ```
       [/note]
-   1. Security - needed for ssh connection option
+   1. Security - needed to enable ssh connectivity
       ```bash
       PROJECT_ID=$(openstack project list -f value -c ID --domain admin_domain)
       SECGRP_ID=$(openstack security group list --project $PROJECT_ID | awk '/default/{print$2}')
-      
+
       openstack security group rule create $SECGRP_ID --protocol icmp --ingress --ethertype IPv4
       openstack security group rule create $SECGRP_ID --protocol icmp --ingress --ethertype IPv6
       openstack security group rule create $SECGRP_ID --protocol tcp --ingress --ethertype IPv4 --dst-port 22
       openstack security group rule create $SECGRP_ID --protocol tcp --ingress --ethertype IPv6 --dst-port 22
       ```
-   1. Quota - change quotas to enable more machines
+   1. Quota - change quotas to increase the number of instances and security groups that can be created
       ```bash
       PROJECT_ID=$(openstack project list -f value -c ID --domain admin_domain)
       openstack quota set --instances 40 --secgroups 40 $PROJECT_ID
       ```
-   1. Keypair - for a server ssh access
+   1. Keypair - allow ssh access to instances using a customer ssh public key
       ```bash
       openstack keypair create --public-key <path_to_publick_key> mykey
       ```
 
 1. The last thing is to add a new OpenStack cloud to Juju, create new credentials and create a controller.
-   See the [OpenStack-cloud][openstack-cloud] page for more information.
+   See [Using OpenStack with Juju][openstack-cloud] for more information.
 
    [note status="Tunnel"]
-   If your OpenStack environment is not on the local machine, or you are not working directly on the remote machine,
-   you may need to run it `sshuttle` to create a tunnel for copying from the juju unit.
-   `sshuttle -r <user@server> <juju-network>` e.g. `sshuttle -r bastion 10.5.0.0/16` (find network with
+   If your OpenStack environment is not on the local machine, or the remote machine is not reachable directly,
+   you may need to run `sshuttle` to redirect all the traffic via a ssh tunnel.
+   `sshuttle -r <user@server> <juju-network>` e.g. `sshuttle -r jumphost 10.5.0.0/16` (find network with
    `juju status -m controller`)
    [/note]
 
@@ -237,11 +238,9 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
           version: "3"
       ```
       [/note]
-   1. Allow multiple units to land in 3 nova-compute units (edit disk, ram and cpu ratio).
+   1. Allow multiple units to land on 3 nova-compute units (edit disk, ram and cpu ratio).
       ```bash
-      juju config nova-cloud-controller disk-allocation-ratio=10
-      juju config nova-cloud-controller ram-allocation-ratio=1
-      juju config nova-cloud-controller cpu-allocation-ratio=4
+      juju config nova-cloud-controller disk-allocation-ratio=10 ram-allocation-ratio=1 cpu-allocation-ratio=4
       ```
    1. It's necessary to create metadata for initializing a Juju cloud environment (creating the controller).
       ```bash
@@ -255,7 +254,7 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       juju bootstrap --metadata-source ./simplestreams --model-default external-network=$EXT_NET --model-default network=$INT_NET --model-default use-floating-ip=true --model-default use-default-secgroup=true --config default-series=focal <cloud_name> <controller_name>
       ```
       [note status="Proxy"]
-      If a proxy is required on the servers where you deploy it, also use
+      If the environment used to deploy the instances requires a proxy, the following must also be used:
       `--model-default http-proxy=<proxy_ip>:<proxy_port> --model-default https-proxy=<proxy_ip>:<proxy_port>`.
       [/note]
 

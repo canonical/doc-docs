@@ -16,17 +16,16 @@ handling the k8s situation.
 
 ## Requirements
 
-You need to have deployed [CDK][charmed-distribution-kubernetes] environment on the [OpenStack-base][openstack-base]
-environment. Then you need to have OpenStack configured with valid credentials (e.g. `source novarc`, represent
-the OpenStack credential, belonging to OpenStack on top of which you are deploying [OpenStack-base][openstack-base]
-and if you don't have it, ask your OpenStack administrator)
+ 1. A deployed [CDK][charmed-distribution-kubernetes] environment on top of an OpenStack environment (such as [OpenStack-base][openstack-base])
+ 1. OpenStack is configured with valid credentials (e.g. `source novarc`, represents
+the OpenStack credentials, belonging to the managed OpenStack service on top of which the overcloud OpenStack service is deployed. If the credentials are missing, ask the managed OpenStack administrator)
 
-Instructions on how to deploy OpenStack on OpenStack can be found on [charmhub discourse][openstack-on-openstack].
+See tutorial [How to deploy openstack-on-openstack, and bootstrap a Juju env on top of it][openstack-on-openstack].
 
 ## Environment preparation
 
-For the purposes of this tutorial, it is necessary to have the PVC storage attached to any **k8** pod and then upgrade
-the QEMU. Then this PVC storage should be attached to any pod.
+For the purposes of this tutorial, it is necessary to have the PVC storage attached to any **k8s** pod and then upgrade
+QEMU.
 
 ### Cinder volume
 
@@ -110,7 +109,7 @@ Simply live migrate the instance to another host. Here's an example
 (may need to add `--block-migration` or `--shared-migration`):
 
 ```bash
-openstack server migrate --wait --live-migration $instance_uuid 
+openstack server migrate --wait --live-migration $instance_uuid
 ```
 
 ## K8s Attachment Issues
@@ -124,8 +123,6 @@ described in [K8s Worker Maintenance Tutorial][K8sWorkerMaintenance].
 If it's a custom pod, be aware that using the `delete-local-storage=true` parameter will result in the loss of locally
 stored data in the pod.
 [/note]
-
-...
 
 [#1847361]: https://bugs.launchpad.net/ubuntu/+source/qemu/+bug/1847361
 [openstack-base]: https://jaas.ai/openstack-base
