@@ -184,7 +184,7 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       PROJECT_ID=$(openstack project list -f value -c ID --domain admin_domain)
       openstack quota set --instances 40 --secgroups 40 $PROJECT_ID
       ```
-   1. Keypair - allow ssh access to instances using a customer ssh public key
+   1. Keypair - allow ssh access to instance using a customer ssh public key
       ```bash
       openstack keypair create --public-key <path_to_publick_key> mykey
       ```
@@ -205,19 +205,19 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       ```
       [note="cloud configuration example"]
       ```yaml
-      defined: public
-      type: openstack
-      auth-types: [userpass]
-      endpoint: https://10.5.0.8:5000/v3
-      credential-count: 1
-      regions:
-         RegionOne: {}
-      ca-credentials:
-      - |
-        -----BEGIN CERTIFICATE-----
-        <your_certificate>
-        -----END CERTIFICATE-----
-
+      clouds:
+        <cloud_name>:
+          type: openstack
+          auth-types: [userpass]
+          endpoint: https://<keystone_internal_ip>:5000/v3
+          regions:
+            RegionOne:
+              endpoint: https://<keystone_internal_ip>:5000/v3
+          ca-certificates:
+          - |
+            -----BEGIN CERTIFICATE-----
+            <your_certificate>
+            -----END CERTIFICATE-----
       ```
       [/note]
    1. Add credentials to the "openstack" cloud.
@@ -226,16 +226,17 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       ```
       [note="credentials example]
       ```yaml
-      <cloud_name>:
-        <credentials name>:
-          auth-type: userpass
-          username: admin
-          password: <user_password>
-          domain-name: ""
-          project-domain-name: admin_domain
-          tenant-name: admin
-          user-domain-name: admin_domain
-          version: "3"
+      credentials:
+        <cloud_name>:
+          <credentials name>:
+            auth-type: userpass
+            username: admin
+            password: <user_password>
+            domain-name: ""
+            project-domain-name: admin_domain
+            tenant-name: admin
+            user-domain-name: admin_domain
+            version: "3"
       ```
       [/note]
    1. Allow multiple units to land on 3 nova-compute units (edit disk, ram and cpu ratio).
