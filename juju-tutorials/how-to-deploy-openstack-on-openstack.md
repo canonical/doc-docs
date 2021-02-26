@@ -203,8 +203,8 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       ```bash
       juju add-cloud
       ```
-      [note="cloud configuration example"]
       ```yaml
+      # cloud configuration example
       clouds:
         <cloud_name>:
           type: openstack
@@ -219,13 +219,12 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
             <your_certificate>
             -----END CERTIFICATE-----
       ```
-      [/note]
    1. Add credentials to the "openstack" cloud.
       ```bash
       juju add-credential <cloud_name>
       ```
-      [note="credentials example]
       ```yaml
+      # credentials example
       credentials:
         <cloud_name>:
           <credentials name>:
@@ -238,7 +237,6 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
             user-domain-name: admin_domain
             version: "3"
       ```
-      [/note]
    1. Allow multiple units to land on 3 nova-compute units (edit disk, ram and cpu ratio).
       ```bash
       juju config nova-cloud-controller disk-allocation-ratio=10 ram-allocation-ratio=1 cpu-allocation-ratio=4
