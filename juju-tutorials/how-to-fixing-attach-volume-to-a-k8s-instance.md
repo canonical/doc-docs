@@ -1,5 +1,4 @@
 [comment]: <> (How To Fix A Volume Attachment Failure Against An OpenStack Instance)
-[comment]: <> (update link for "the OpenStack on OpenStack" after its publication)
 
 ## Introduction
 
@@ -128,4 +127,4 @@ stored data in the pod.
 [openstack-base]: https://jaas.ai/openstack-base
 [charmed-distribution-kubernetes]: https://jaas.ai/canonical-kubernetes
 [K8sWorkerMaintenance]: https://discourse.charmhub.io/t/how-to-perform-maintenance-on-a-kubernetes-worker/3910
-[openstack-on-openstack]: https://discourse.charmhub.io/t/update_link_after_publishing_it
+[openstack-on-openstack]: https://discourse.charmhub.io/t/how-to-deploy-openstack-on-openstack-and-bootstrap-a-juju-env-on-top-of-it/4189
