@@ -203,41 +203,40 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       ```bash
       juju add-cloud
       ```
-      [note="cloud configuration example"]
       ```yaml
-      defined: public
-      type: openstack
-      auth-types: [userpass]
-      endpoint: https://10.5.0.8:5000/v3
-      credential-count: 1
-      regions:
-         RegionOne: {}
-      ca-credentials:
-      - |
-        -----BEGIN CERTIFICATE-----
-        <your_certificate>
-        -----END CERTIFICATE-----
-
+      # cloud configuration example
+      clouds:
+        <cloud_name>:
+          type: openstack
+          auth-types: [userpass]
+          endpoint: https://<keystone_internal_ip>:5000/v3
+          regions:
+            RegionOne:
+              endpoint: https://<keystone_internal_ip>:5000/v3
+          ca-certificates:
+          - |
+            -----BEGIN CERTIFICATE-----
+            <your_certificate>
+            -----END CERTIFICATE-----
       ```
-      [/note]
    1. Add credentials to the "openstack" cloud.
       ```bash
       juju add-credential <cloud_name>
       ```
-      [note="credentials example]
       ```yaml
-      <cloud_name>:
-        <credentials name>:
-          auth-type: userpass
-          username: admin
-          password: <user_password>
-          domain-name: ""
-          project-domain-name: admin_domain
-          tenant-name: admin
-          user-domain-name: admin_domain
-          version: "3"
+      # credentials example
+      credentials:
+        <cloud_name>:
+          <credentials name>:
+            auth-type: userpass
+            username: admin
+            password: <user_password>
+            domain-name: null
+            project-domain-name: admin_domain
+            tenant-name: admin
+            user-domain-name: admin_domain
+            version: "3"
       ```
-      [/note]
    1. Allow multiple units to land on 3 nova-compute units (edit disk, ram and cpu ratio).
       ```bash
       juju config nova-cloud-controller disk-allocation-ratio=10 ram-allocation-ratio=1 cpu-allocation-ratio=4
