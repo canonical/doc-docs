@@ -184,7 +184,7 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
       PROJECT_ID=$(openstack project list -f value -c ID --domain admin_domain)
       openstack quota set --instances 40 --secgroups 40 $PROJECT_ID
       ```
-   1. Keypair - allow ssh access to instance using a customer ssh public key
+   1. Keypair - allow ssh access to instances using a customer ssh public key
       ```bash
       openstack keypair create --public-key <path_to_publick_key> mykey
       ```
@@ -232,7 +232,7 @@ Don't forget to get credentials for the new OpenStack. (e.g. `source openrc`, wh
             auth-type: userpass
             username: admin
             password: <user_password>
-            domain-name: ""
+            domain-name: null
             project-domain-name: admin_domain
             tenant-name: admin
             user-domain-name: admin_domain
